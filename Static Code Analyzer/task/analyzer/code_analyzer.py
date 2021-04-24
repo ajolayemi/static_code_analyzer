@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 
 MAX_LINE_LEN = 79
 
@@ -10,7 +11,16 @@ ERRORS_DICT = {'Long Line': 'S001',
                'Semicolon': 'S003',
                'Inline Comments': 'S004',
                'TODO': 'S005',
-               'Blank lines': 'S006'}
+               'Blank lines': 'S006',
+               'Construction space': 'S007',
+               'Class name': 'S008',
+               'Function name': 'S009'
+               }
+
+class_name_ptn = r'^[A-Z][a-z]+[A-Z][a-z]+$'
+function_name_ptn = r'^[a-z_]+_?+[a-z_]+$'
+def_constructor_ptn = r'^\s?def\s{1}\w+'
+class_constructor_ptn = r'^\s?class\s{1}\w+'
 
 sys.argv.append(r'..\test')
 if len(sys.argv) > 2:
@@ -42,8 +52,22 @@ class Analyser:
                 self.check_inline_comment(c_line)
                 self.check_to_do(c_line)
                 self.check_blank_lines(c_line)
+                self.check_constructor_space(c_line)
             except StopIteration:
                 break
+
+    @staticmethod
+    def check_constructor_space(current_line):
+        if current_line:
+            c_line, c_line_num, file_path = current_line
+            if c_line.lstrip().startswith('class') and not re.search(class_constructor_ptn,
+                                                                     c_line.lstrip()):
+                print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Construction space")} '
+                      f'Too many spaces after class constructor ')
+            elif c_line.lstrip().startswith('def') and not re.search(def_constructor_ptn,
+                                                                     c_line.lstrip()):
+                print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Construction space")} '
+                      f'Too many spaces after def constructor ')
 
     @staticmethod
     def check_long_line(current_line):
