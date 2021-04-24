@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import re
-
 
 MAX_LINE_LEN = 79
 
@@ -24,6 +22,30 @@ class Analyser:
         self.file = file_to_analyse
         self.invalid_file = os.path.exists(self.file)
         self.all_errors = {}
+
+    # TODO to be completed
+    def check_for_semicolon(self):
+        """ Checks for the presence of unnecessary
+        semicolons in assignments statements """
+        current_line = self.file_reader()
+        if current_line:
+            try:
+                while True:
+                    c_line, c_line_num = next(current_line)
+                    line_str = f'Line {c_line_num}'
+                    split_c_line = c_line.split(';')
+                    for semicolon_check in split_c_line:
+                        if not semicolon_check.startswith('#') and ';' in c_line:
+                            if line_str in self.all_errors:
+                                self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'), c_line_num])
+                                break
+                            else:
+                                self.all_errors[line_str] = []
+                                self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
+                                                                  c_line_num])
+                                break
+            except StopIteration:
+                pass
 
     def check_indent_error(self):
         current_line = self.file_reader()
@@ -63,6 +85,7 @@ class Analyser:
 def main():
     s = Analyser()
     s.check_indent_error()
+    s.check_for_semicolon()
     print(s.all_errors)
 
 
