@@ -17,10 +17,10 @@ ERRORS_DICT = {'Long Line': 'S001',
                'Function name': 'S009'
                }
 
-class_name_ptn = r'^[A-Z][a-z]+[A-Z][a-z]+$'
-function_name_ptn = r'^[a-z_]+_?+[a-z_]+$'
-def_constructor_ptn = r'^\s?def\s{1}\w+'
-class_constructor_ptn = r'^\s?class\s{1}\w+'
+class_name_ptn = re.compile(r'^class[\s]+[A-Z][a-z]+[A-Z]?[a-z]+?$')
+function_name_ptn = re.compile(r'^def[\s]+[a-z_]+_?[a-z_]+$')
+def_constructor_ptn = re.compile(r'^\s?def\s\w+')
+class_constructor_ptn = re.compile(r'^\s?class\s\w+')
 
 sys.argv.append(r'..\test')
 if len(sys.argv) > 2:
@@ -53,8 +53,28 @@ class Analyser:
                 self.check_to_do(c_line)
                 self.check_blank_lines(c_line)
                 self.check_constructor_space(c_line)
+                self.check_naming_convention(c_line)
             except StopIteration:
                 break
+
+    @staticmethod
+    def check_naming_convention(current_line):
+        if current_line:
+            c_line, c_line_num, file_path = current_line
+            if c_line.lstrip().startswith('class'):
+                if c_line.strip().find('(') > 0:
+                    class_name = c_line[:c_line.strip().find('(')]
+                else:
+                    class_name = c_line[:c_line.strip().find(':')]
+
+                if not re.search(class_name_ptn, class_name):
+                    print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Class name")} '
+                          f'ClassName follows the CamelCase convention.')
+
+            elif c_line.lstrip().startswith('def') and \
+                    not re.search(function_name_ptn, c_line.strip()[:c_line.strip().index('(')]):
+                print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Function name")} '
+                      f'function_name follows the snake_case convention.')
 
     @staticmethod
     def check_constructor_space(current_line):
