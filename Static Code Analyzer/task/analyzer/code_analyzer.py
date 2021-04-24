@@ -18,6 +18,8 @@ valid_file = os.path.exists(file)
 
 class Analyser:
     """ A simple static code analyser. """
+    previous_blanks = 0
+
     def __init__(self, file_to_analyse: str = file):
         self.file = file_to_analyse
         self.invalid_file = os.path.exists(self.file)
@@ -31,8 +33,21 @@ class Analyser:
                 self.check_for_semicolon(c_line)
                 self.check_inline_comment(c_line)
                 self.check_to_do(c_line)
+                self.check_blank_lines(c_line)
             except StopIteration:
                 break
+
+    @staticmethod
+    def check_blank_lines(current_line):
+        if current_line:
+            c_line, c_line_num = current_line
+            if len(c_line) == 1:
+                Analyser.previous_blanks += 1
+            else:
+                if Analyser.previous_blanks > 2:
+                    print(f'Line: {c_line_num}: {ERRORS_DICT.get("Blank lines")} More than two blank'
+                          f' lines preceding a code line')
+                    Analyser.previous_blanks = 0
 
     @staticmethod
     def check_to_do(current_line):
