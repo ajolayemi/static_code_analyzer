@@ -23,29 +23,39 @@ class Analyser:
         self.invalid_file = os.path.exists(self.file)
         self.all_errors = {}
 
-    def check_inline_comment(self):
-        pass
+        current_line = self.file_reader()
+        while True:
+            try:
+                c_line = next(current_line)
+                self.check_indent_error(c_line)
+                self.check_for_semicolon(c_line)
+                self.check_inline_comment(c_line)
+            except StopIteration:
+                break
 
-    def check_for_semicolon(self):
+    def check_inline_comment(self, current_line):
+        if current_line:
+            c_line, c_line_num = current_line
+            line_str = f'Line {c_line_num}'
+            if '#' in c_line and not c_line.startswith('#'):
+                if not c_line.split('#')[0].endswith('  '):
+                    if line_str in self.all_errors:
+                        self.all_errors[line_str].append(ERRORS_DICT.get('Inline Comments'))
+                    else:
+                        self.all_errors[line_str] = [ERRORS_DICT.get('Inline Comments')]
+
+    def check_for_semicolon(self, current_line):
         """ Checks for the presence of unnecessary
         semicolons in statements """
-        current_line = self.file_reader()
         if current_line:
-            try:
-                while True:
-                    c_line, c_line_num = next(current_line)
-                    line_str = f'Line {c_line_num}'
-                    line_without_comment = self.remove_comment_in_a_string(c_line)
-                    if line_without_comment.endswith(';'):
-                        if line_str in self.all_errors:
-                            self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
-                                                             c_line_num])
-                        else:
-                            self.all_errors[line_str] = []
-                            self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
-                                                             c_line_num])
-            except StopIteration:
-                pass
+            c_line, c_line_num = current_line
+            line_str = f'Line {c_line_num}'
+            line_without_comment = self.remove_comment_in_a_string(c_line)
+            if line_without_comment.endswith(';'):
+                if line_str in self.all_errors:
+                    self.all_errors[line_str].append(ERRORS_DICT.get('Semicolon'))
+                else:
+                    self.all_errors[line_str] = [ERRORS_DICT.get('Semicolon')]
 
     @staticmethod
     def remove_comment_in_a_string(string):
@@ -54,24 +64,16 @@ class Analyser:
         else:
             return string
 
-    def check_indent_error(self):
-        current_line = self.file_reader()
+    def check_indent_error(self, current_line):
         if current_line:
-            try:
-                while True:
-                    c_line, c_line_num = next(current_line)
-                    line_str = f'Line {c_line_num}'
-                    indent_num = len(c_line) - len(c_line.lstrip())
-                    if indent_num % 4 > 0 and len(c_line) > 1:
-                        if line_str in self.all_errors:
-                            self.all_errors[line_str].append([ERRORS_DICT.get('Indentation'),
-                                                              c_line_num])
-                        else:
-                            self.all_errors[line_str] = []
-                            self.all_errors[line_str].append([ERRORS_DICT.get('Indentation'),
-                                                              c_line_num])
-            except StopIteration:
-                pass
+            c_line, c_line_num = current_line
+            line_str = f'Line {c_line_num}'
+            indent_num = len(c_line) - len(c_line.lstrip())
+            if indent_num % 4 > 0 and len(c_line) > 1:
+                if line_str in self.all_errors:
+                    self.all_errors[line_str].append(ERRORS_DICT.get('Indentation'))
+                else:
+                    self.all_errors[line_str] = [ERRORS_DICT.get('Indentation')]
 
     def file_reader(self) -> tuple:
         """ Loops through the provided file yielding each line and it's corresponding
@@ -91,8 +93,6 @@ class Analyser:
 
 def main():
     s = Analyser()
-    s.check_indent_error()
-    s.check_for_semicolon()
     print(s.all_errors)
 
 
