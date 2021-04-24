@@ -23,29 +23,36 @@ class Analyser:
         self.invalid_file = os.path.exists(self.file)
         self.all_errors = {}
 
-    # TODO to be completed
+    def check_inline_comment(self):
+        pass
+
     def check_for_semicolon(self):
         """ Checks for the presence of unnecessary
-        semicolons in assignments statements """
+        semicolons in statements """
         current_line = self.file_reader()
         if current_line:
             try:
                 while True:
                     c_line, c_line_num = next(current_line)
                     line_str = f'Line {c_line_num}'
-                    split_c_line = c_line.split(';')
-                    for semicolon_check in split_c_line:
-                        if not semicolon_check.startswith('#') and ';' in c_line:
-                            if line_str in self.all_errors:
-                                self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'), c_line_num])
-                                break
-                            else:
-                                self.all_errors[line_str] = []
-                                self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
-                                                                  c_line_num])
-                                break
+                    line_without_comment = self.remove_comment_in_a_string(c_line)
+                    if line_without_comment.endswith(';'):
+                        if line_str in self.all_errors:
+                            self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
+                                                             c_line_num])
+                        else:
+                            self.all_errors[line_str] = []
+                            self.all_errors[line_str].append([ERRORS_DICT.get('Semicolon'),
+                                                             c_line_num])
             except StopIteration:
                 pass
+
+    @staticmethod
+    def remove_comment_in_a_string(string):
+        if '#' in string:
+            return string[:string.index('#')].strip()
+        else:
+            return string
 
     def check_indent_error(self):
         current_line = self.file_reader()
