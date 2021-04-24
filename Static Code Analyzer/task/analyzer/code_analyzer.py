@@ -10,7 +10,6 @@ ERRORS_DICT = {'Long Line': 'S001',
                'Inline Comments': 'S004',
                'TODO': 'S005',
                'Blank lines': 'S006'}
-indent_pattern = r'^ +'
 file = input()
 
 valid_file = os.path.exists(file)
@@ -23,12 +22,14 @@ class Analyser:
     def __init__(self, file_to_analyse: str = file):
         self.file = file_to_analyse
         self.invalid_file = os.path.exists(self.file)
-        self.all_errors = {}
+        self.check_all()
 
+    def check_all(self):
         current_line = self.file_reader()
         while True:
             try:
                 c_line = next(current_line)
+                self.check_long_line(c_line)
                 self.check_indent_error(c_line)
                 self.check_for_semicolon(c_line)
                 self.check_inline_comment(c_line)
@@ -38,6 +39,14 @@ class Analyser:
                 break
 
     @staticmethod
+    def check_long_line(current_line):
+        if current_line:
+            c_line, c_line_num = current_line
+            if len(c_line) > MAX_LINE_LEN:
+                print(f'Line {c_line_num}: {ERRORS_DICT.get("Long Line")} The line is {len(c_line) - MAX_LINE_LEN}'
+                      f' chars too long')
+
+    @staticmethod
     def check_blank_lines(current_line):
         if current_line:
             c_line, c_line_num = current_line
@@ -45,7 +54,7 @@ class Analyser:
                 Analyser.previous_blanks += 1
             else:
                 if Analyser.previous_blanks > 2:
-                    print(f'Line: {c_line_num}: {ERRORS_DICT.get("Blank lines")} More than two blank'
+                    print(f'Line {c_line_num}: {ERRORS_DICT.get("Blank lines")} More than two blank'
                           f' lines preceding a code line')
                     Analyser.previous_blanks = 0
 
@@ -73,7 +82,7 @@ class Analyser:
         if current_line:
             c_line, c_line_num = current_line
             line_without_comment = self.remove_comment_in_a_string(c_line)
-            if line_without_comment.endswith(';'):
+            if line_without_comment.strip().endswith(';'):
                 print(f'Line {c_line_num}: {ERRORS_DICT.get("Semicolon")} Unnecessary semicolon')
 
     @staticmethod
