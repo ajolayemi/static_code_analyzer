@@ -4,6 +4,13 @@ import os
 
 MAX_LINE_LEN = 79
 
+ERRORS_DICT = {'Long Line': 'S001',
+               'Indentation': 'S002',
+               'Statement Semicolon': 'S003',
+               'Inline Comments': 'S004',
+               'TODO Found': 'S005',
+               'Many blank lines': 'S006'}
+
 file = input()
 
 valid_file = os.path.exists(file)
