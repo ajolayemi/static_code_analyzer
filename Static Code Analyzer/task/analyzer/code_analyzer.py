@@ -20,24 +20,22 @@ class Analyser:
     """ A simple static code analyser. """
     def __init__(self, file_to_analyse: str = file):
         self.file = file_to_analyse
+        self.invalid_file = os.path.exists(self.file)
 
-    def analyze_file(self) -> list[list]:
+    def file_reader(self) -> tuple:
+        """ Loops through the provided file yielding each line and it's corresponding
+        line num of the file.
+        one by one.
+        :returns an empty tuple if the provided file does not exist.
         """
-        Reads through each line in the file and checks to see if each line len <= 79
-        Returns a nested list containing the numbers of lines with len > 79 and there len"""
         c_line = 1
-        invalid_lines = []
         try:
             with open(self.file) as file_:
                 for line in file_:
-                    if len(line.strip()) > 79:
-                        invalid_lines.append([c_line, len(line.strip())])
-                        c_line += 1
-                    else:
-                        c_line += 1
-                return invalid_lines, True
+                    yield line.strip(), c_line
+                    c_line += 1
         except FileNotFoundError:
-            return [], False, 0
+            return ()
 
 
 def main():
