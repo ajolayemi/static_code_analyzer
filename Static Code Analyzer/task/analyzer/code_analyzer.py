@@ -30,32 +30,36 @@ class Analyser:
                 self.check_indent_error(c_line)
                 self.check_for_semicolon(c_line)
                 self.check_inline_comment(c_line)
+                self.check_to_do(c_line)
             except StopIteration:
                 break
 
-    def check_inline_comment(self, current_line):
+    @staticmethod
+    def check_to_do(current_line):
+        if current_line:
+            c_line, c_line_num = current_line
+            comment = c_line[c_line.find('#'):].lower()
+            if 'todo' in comment:
+                print(f'Line {c_line_num}: {ERRORS_DICT.get("TODO")} TODO found')
+
+    @staticmethod
+    def check_inline_comment(current_line):
         if current_line:
             c_line, c_line_num = current_line
             line_str = f'Line {c_line_num}'
             if '#' in c_line and not c_line.startswith('#'):
                 if not c_line.split('#')[0].endswith('  '):
-                    if line_str in self.all_errors:
-                        self.all_errors[line_str].append(ERRORS_DICT.get('Inline Comments'))
-                    else:
-                        self.all_errors[line_str] = [ERRORS_DICT.get('Inline Comments')]
+                    print(f'{line_str}: {ERRORS_DICT.get("Inline Comments")} At least two spaces required'
+                          f' before inline comments')
 
     def check_for_semicolon(self, current_line):
         """ Checks for the presence of unnecessary
         semicolons in statements """
         if current_line:
             c_line, c_line_num = current_line
-            line_str = f'Line {c_line_num}'
             line_without_comment = self.remove_comment_in_a_string(c_line)
             if line_without_comment.endswith(';'):
-                if line_str in self.all_errors:
-                    self.all_errors[line_str].append(ERRORS_DICT.get('Semicolon'))
-                else:
-                    self.all_errors[line_str] = [ERRORS_DICT.get('Semicolon')]
+                print(f'Line {c_line_num}: {ERRORS_DICT.get("Semicolon")} Unnecessary semicolon')
 
     @staticmethod
     def remove_comment_in_a_string(string):
@@ -64,16 +68,14 @@ class Analyser:
         else:
             return string
 
-    def check_indent_error(self, current_line):
+    @staticmethod
+    def check_indent_error(current_line):
         if current_line:
             c_line, c_line_num = current_line
-            line_str = f'Line {c_line_num}'
             indent_num = len(c_line) - len(c_line.lstrip())
             if indent_num % 4 > 0 and len(c_line) > 1:
-                if line_str in self.all_errors:
-                    self.all_errors[line_str].append(ERRORS_DICT.get('Indentation'))
-                else:
-                    self.all_errors[line_str] = [ERRORS_DICT.get('Indentation')]
+                print(f'Line {c_line_num}: {ERRORS_DICT.get("Indentation")} '
+                      f'Line indent not a multiple of four')
 
     def file_reader(self) -> tuple:
         """ Loops through the provided file yielding each line and it's corresponding
@@ -91,10 +93,5 @@ class Analyser:
             return ()
 
 
-def main():
-    s = Analyser()
-    print(s.all_errors)
-
-
 if __name__ == '__main__':
-    main()
+    Analyser()
