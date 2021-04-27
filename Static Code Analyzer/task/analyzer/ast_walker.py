@@ -24,6 +24,15 @@ class ClassAnalyzer(ast.NodeVisitor):
     def __init__(self, file_path):
         self.file = file_path
 
+    def visit_ClassDef(self, node):
+        """ Checks classes names to see whether they match CamelCase naming convention. """
+        if isinstance(node, ast.ClassDef):
+            if not re.search(class_name_ptn, node.name):
+                print(f'{self.file}: Line {node.lineno}: {ERRORS_DICT.get("Class name")} '
+                      f'The class - {node.name} - does not follow CamelCase naming convention')
+
+        self.generic_visit(node)
+
 
 class FuncAnalyzer(ast.NodeVisitor):
     """ Walks through python file and analyzes functions defined therein """

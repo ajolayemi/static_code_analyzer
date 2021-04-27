@@ -4,7 +4,8 @@ import os
 import sys
 import re
 from ast_walker import (FuncAnalyzer,
-                        file_parser)
+                        file_parser,
+                        ClassAnalyzer)
 
 MAX_LINE_LEN = 79
 
@@ -57,27 +58,13 @@ class Analyser:
                 self.check_to_do(c_file_line)
                 self.check_blank_lines(c_file_line)
                 self.check_constructor_space(c_file_line)
-                self.check_naming_convention(c_file_line)
                 if file_path not in processed_files:
                     parsed_file = file_parser(file_path)
+                    ClassAnalyzer(file_path).visit_ClassDef(parsed_file)
                     FuncAnalyzer(file_path).visit_FunctionDef(parsed_file)
                     processed_files.append(file_path)
             except StopIteration:
                 break
-
-    @staticmethod
-    def check_naming_convention(current_line):
-        if current_line:
-            c_line, c_line_num, file_path = current_line
-            if c_line.lstrip().startswith('class'):
-                if c_line.strip().find('(') > 0:
-                    class_name = c_line[:c_line.strip().find('(')]
-                else:
-                    class_name = c_line[:c_line.strip().find(':')]
-
-                if not re.search(class_name_ptn, class_name):
-                    print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Class name")} '
-                          f'ClassName follows the CamelCase convention.')
 
     @staticmethod
     def check_constructor_space(current_line):
