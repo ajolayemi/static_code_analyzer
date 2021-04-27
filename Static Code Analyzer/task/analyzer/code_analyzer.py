@@ -21,7 +21,7 @@ ERRORS_DICT = {'Long Line': 'S001',
 def_constructor_ptn = re.compile(r'^\s?def\s\w+')
 class_constructor_ptn = re.compile(r'^\s?class\s\w+')
 
-sys.argv.append(r'..\test\test_2.py')
+
 if len(sys.argv) >= 2:
     file_or_dir = sys.argv[1]
 
