@@ -18,8 +18,15 @@ def file_parser(file_to_parse):
         return ast.parse(file.read())
 
 
+class ClassAnalyzer(ast.NodeVisitor):
+    """ Walks through python file and analyzes functions defined therein. """
+
+    def __init__(self, file_path):
+        self.file = file_path
+
+
 class FuncAnalyzer(ast.NodeVisitor):
-    """ Walks through python file and gets each function name. """
+    """ Walks through python file and analyzes functions defined therein """
 
     def __init__(self, file_path):
         self.file_path = file_path
