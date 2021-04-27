@@ -16,12 +16,8 @@ ERRORS_DICT = {'Long Line': 'S001',
                'TODO': 'S005',
                'Blank lines': 'S006',
                'Construction space': 'S007',
-               'Class name': 'S008',
-               'Function name': 'S009'
                }
 
-class_name_ptn = re.compile(r'^class\s+[A-Z][a-z]+[A-Z]?[a-z]+?$')
-function_name_ptn = re.compile(r'^def\s+[a-z_]+_?[a-z_]+$')
 def_constructor_ptn = re.compile(r'^\s?def\s\w+')
 class_constructor_ptn = re.compile(r'^\s?class\s\w+')
 
