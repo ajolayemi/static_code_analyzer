@@ -148,7 +148,7 @@ class Analyser:
         """
         c_line_num = 1
         try:
-            if is_file:
+            if is_file and self.file.endswith('.py'):
                 with open(self.file) as file_:
                     for line in file_:
                         yield line, c_line_num, self.file
@@ -157,11 +157,12 @@ class Analyser:
                 for dir_path, dir_names, file_names in os.walk(self.file):
                     for name in file_names:
                         file_path = os.path.join(dir_path, name)
-                        with open(file_path) as file_:
-                            for line in file_:
-                                yield line, c_line_num, file_path
-                                c_line_num += 1
-                        c_line_num = 1
+                        if file_path.endswith('.py'):
+                            with open(file_path) as file_:
+                                for line in file_:
+                                    yield line, c_line_num, file_path
+                                    c_line_num += 1
+                            c_line_num = 1
         except FileNotFoundError:
             return ()
 
