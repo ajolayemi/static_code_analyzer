@@ -6,10 +6,11 @@ very_big_number = 11_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000
 print(very_big_number)
 
 
-def some_fun():
-    print('NO TODO HERE;;')
-    pass  # Todo something
-
+def some_fun(S = [], T: str = {}) -> str:
+    """ Just having some fun
+    :return Ok """
+    Vaar = 1
+    print(VaRIn)
 
 class InvalidClass:
     @staticmethod

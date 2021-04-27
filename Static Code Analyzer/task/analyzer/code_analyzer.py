@@ -3,6 +3,8 @@
 import os
 import sys
 import re
+from ast_walker import (FuncAnalyzer,
+                        file_parser)
 
 MAX_LINE_LEN = 79
 
@@ -17,13 +19,13 @@ ERRORS_DICT = {'Long Line': 'S001',
                'Function name': 'S009'
                }
 
-class_name_ptn = re.compile(r'^class[\s]+[A-Z][a-z]+[A-Z]?[a-z]+?$')
-function_name_ptn = re.compile(r'^def[\s]+[a-z_]+_?[a-z_]+$')
+class_name_ptn = re.compile(r'^class\s+[A-Z][a-z]+[A-Z]?[a-z]+?$')
+function_name_ptn = re.compile(r'^def\s+[a-z_]+_?[a-z_]+$')
 def_constructor_ptn = re.compile(r'^\s?def\s\w+')
 class_constructor_ptn = re.compile(r'^\s?class\s\w+')
 
-sys.argv.append(r'..\test')
-if len(sys.argv) > 2:
+sys.argv.append(r'..\test\test_2.py')
+if len(sys.argv) >= 2:
     file_or_dir = sys.argv[1]
 
 else:
@@ -43,17 +45,23 @@ class Analyser:
 
     def check_all(self):
         current_line = self.file_reader()
+        processed_files = []
         while True:
             try:
-                c_line = next(current_line)
-                self.check_long_line(c_line)
-                self.check_indent_error(c_line)
-                self.check_for_semicolon(c_line)
-                self.check_inline_comment(c_line)
-                self.check_to_do(c_line)
-                self.check_blank_lines(c_line)
-                self.check_constructor_space(c_line)
-                self.check_naming_convention(c_line)
+                c_file_line = next(current_line)
+                current_f_line, line_num, file_path = c_file_line
+                self.check_long_line(c_file_line)
+                self.check_indent_error(c_file_line)
+                self.check_for_semicolon(c_file_line)
+                self.check_inline_comment(c_file_line)
+                self.check_to_do(c_file_line)
+                self.check_blank_lines(c_file_line)
+                self.check_constructor_space(c_file_line)
+                self.check_naming_convention(c_file_line)
+                if file_path not in processed_files:
+                    parsed_file = file_parser(file_path)
+                    FuncAnalyzer(file_path).visit_FunctionDef(parsed_file)
+                    processed_files.append(file_path)
             except StopIteration:
                 break
 
@@ -70,11 +78,6 @@ class Analyser:
                 if not re.search(class_name_ptn, class_name):
                     print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Class name")} '
                           f'ClassName follows the CamelCase convention.')
-
-            elif c_line.lstrip().startswith('def') and \
-                    not re.search(function_name_ptn, c_line.strip()[:c_line.strip().index('(')]):
-                print(f'{file_path}: Line {c_line_num}: {ERRORS_DICT.get("Function name")} '
-                      f'function_name follows the snake_case convention.')
 
     @staticmethod
     def check_constructor_space(current_line):
@@ -160,22 +163,22 @@ class Analyser:
         one by one.
         :returns an empty tuple if the provided file_or_dir does not exist.
         """
-        c_line = 1
+        c_line_num = 1
         try:
             if is_file:
                 with open(self.file) as file_:
                     for line in file_:
-                        yield line, c_line, self.file
-                        c_line += 1
+                        yield line, c_line_num, self.file
+                        c_line_num += 1
             elif is_dir:
                 for dir_path, dir_names, file_names in os.walk(self.file):
                     for name in file_names:
                         file_path = os.path.join(dir_path, name)
                         with open(file_path) as file_:
                             for line in file_:
-                                yield line, c_line, file_path
-                                c_line += 1
-                        c_line = 1
+                                yield line, c_line_num, file_path
+                                c_line_num += 1
+                        c_line_num = 1
         except FileNotFoundError:
             return ()
 
